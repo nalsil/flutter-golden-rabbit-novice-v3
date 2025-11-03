@@ -3,4 +3,5 @@ int addTwoNumbers(int a, [int b = 2]) {
 }
 void main() {
   print(addTwoNumbers(1));
+  print(addTwoNumbers(1,3));
 }

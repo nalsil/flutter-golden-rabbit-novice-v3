@@ -7,4 +7,9 @@ void main() {
   });
 
   print(allMembers);
+
+  final allMembers2 = numbers.reduce((value, element) => value + element);
+
+  print(allMembers2);
+
 }

@@ -8,4 +8,10 @@ void main() {
 
   // age: 19
   print('age: $age');
+
+
+  // final {'name': name1, 'age1': age1} = minjiMap;
+  // print('name: $name1');
+  // print('age: $age1');
+
 }
