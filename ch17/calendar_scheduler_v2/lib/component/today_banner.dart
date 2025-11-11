@@ -1,5 +1,7 @@
 import 'package:calendar_scheduler_v2/const/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:calendar_scheduler_v2/provider/schedule_provider.dart';
+import 'package:provider/provider.dart';
 
 class TodayBanner extends StatelessWidget {
   final DateTime selectedDate;
@@ -10,6 +12,8 @@ class TodayBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ScheduleProvider>();
+
     final textStyle = TextStyle(
       color: Colors.white,
       fontWeight: FontWeight.w600,
@@ -26,7 +30,19 @@ class TodayBanner extends StatelessWidget {
               '${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일',
               style: textStyle,
             ),
-            Text('$count개', style: textStyle),
+            Row(
+              children: [
+                Text('$count개', style: textStyle),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    provider.logout();
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(Icons.logout, color: Colors.white, size: 16.0),
+                ),
+              ],
+            ),
           ],
         ),
       ),

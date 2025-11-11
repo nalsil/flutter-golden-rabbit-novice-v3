@@ -1,10 +1,15 @@
 import 'package:calendar_scheduler_v2/model/schedule_model.dart';
+import 'package:calendar_scheduler_v2/repository/auth_repository.dart';
 import 'package:calendar_scheduler_v2/repository/schedule_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class ScheduleProvider extends ChangeNotifier {
-  final ScheduleRepository repository;
+  final AuthRepository authRepository;
+  final ScheduleRepository scheduleRepository;
+
+  String? accessToken;
+  String? refreshToken;
 
   DateTime selectedDate = DateTime.utc(
     DateTime.now().year,
@@ -13,12 +18,13 @@ class ScheduleProvider extends ChangeNotifier {
   );
   Map<DateTime, List<ScheduleModel>> cache = {};
 
-  ScheduleProvider({required this.repository}) : super() {
+  ScheduleProvider({required this.scheduleRepository, required this.authRepository})
+    : super() {
     getSchedules(date: selectedDate);
   }
 
   void getSchedules({required DateTime date}) async {
-    final resp = await repository.getSchedules(date: date);
+    final resp = await scheduleRepository.getSchedules(date: date);
 
     cache.update(date, (value) => resp, ifAbsent: () => resp);
     notifyListeners();
@@ -42,7 +48,7 @@ class ScheduleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final savedSchedule = await repository.createSchedule(schedule: schedule);
+      final savedSchedule = await scheduleRepository.createSchedule(schedule: schedule);
 
       cache.update(
         targetDate,
@@ -73,7 +79,7 @@ class ScheduleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await repository.deleteSchedule(id: id);
+      await scheduleRepository.deleteSchedule(id: id);
     } catch (e) {
       cache.update(
         date,
@@ -88,6 +94,66 @@ class ScheduleProvider extends ChangeNotifier {
 
   void changeSelectedDate({required DateTime date}) {
     selectedDate = date;
+    notifyListeners();
+  }
+
+  updateTokens({String? refreshToken, String? accessToken}) {
+    if (refreshToken != null) {
+      this.refreshToken = refreshToken;
+    }
+    if (accessToken != null) {
+      this.accessToken = accessToken;
+    }
+    notifyListeners();
+  }
+
+  Future<void> register({
+    required String email,
+    required String password,
+  }) async {
+    final resp = await authRepository.register(
+      email: email,
+      password: password,
+    );
+
+    updateTokens(
+      refreshToken: resp.refreshToken,
+      accessToken: resp.accessToken,
+    );
+  }
+
+  Future<void> login({required String email, required String password}) async {
+    final resp = await authRepository.login(email: email, password: password);
+
+    updateTokens(
+      refreshToken: resp.refreshToken,
+      accessToken: resp.accessToken,
+    );
+  }
+
+  logout() {
+    refreshToken = null;
+    accessToken = null;
+    cache = {};
+    notifyListeners();
+  }
+
+  rotateToken({
+    required String refreshToken,
+    required bool isRefreshToken,
+  }) async {
+    if (isRefreshToken) {
+      final token = await authRepository.rotateRefreshToken(
+        refreshToken: refreshToken,
+      );
+      this.refreshToken = token;
+    } else {
+      final token = await authRepository.rotateAccessToken(
+        refreshToken: refreshToken,
+      );
+      this.accessToken = token;
+    }
+
     notifyListeners();
   }
 }

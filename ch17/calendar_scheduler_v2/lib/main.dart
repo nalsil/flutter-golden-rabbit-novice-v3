@@ -1,10 +1,9 @@
-import 'package:calendar_scheduler_v2/screen/home_screen.dart';
+import 'package:calendar_scheduler_v2/provider/schedule_provider.dart';
+import 'package:calendar_scheduler_v2/repository/auth_repository.dart';
+import 'package:calendar_scheduler_v2/repository/schedule_repository.dart';
+import 'package:calendar_scheduler_v2/screen/auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:calendar_scheduler_v2/database/drift_database.dart';
-import 'package:get_it/get_it.dart';
-import 'package:calendar_scheduler_v2/provider/schedule_provider.dart';
-import 'package:calendar_scheduler_v2/repository/schedule_repository.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -12,17 +11,17 @@ void main() async {
 
   await initializeDateFormatting();
 
-  final database = LocalDatabase();
-
-  GetIt.I.registerSingleton<LocalDatabase>(database);
-
-  final repository = ScheduleRepository();
-  final scheduleProvider = ScheduleProvider(repository: repository);
+  final scheduleRepository = ScheduleRepository();
+  final authRepository = AuthRepository();
+  final scheduleProvider = ScheduleProvider(
+    scheduleRepository: scheduleRepository,
+    authRepository: authRepository,
+  );
 
   runApp(
     ChangeNotifierProvider(
       create: (context) => scheduleProvider,
-      child: MaterialApp(home: HomeScreen()),
+      child: MaterialApp(home: AuthScreen()),
     ),
   );
 }
